@@ -1,0 +1,122 @@
+---
+title: "Target Markdown"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+# Setup
+
+```{r}
+library(neo4jshell)
+
+my_con <- 
+    list(
+        address = "neo4j://localhost:7687",
+        uid = "",
+        pwd = ""
+    )
+
+neo4j_query(
+    con = my_con,
+    qry = 
+    "CALL apoc.stats.degrees('>');"
+)
+
+```
+
+
+```{r}
+library(targets)
+```
+
+```{targets globals, tar_globals = TRUE}
+
+options(tidyverse.quiet = TRUE)
+
+tar_option_set(
+  packages = c(
+    "dplyr", "readr",
+    "ggraph", "tidygraph"
+  )
+)
+```
+
+# Targets
+
+```{targets raw_files}
+list(
+  tar_target(
+    nodes_raw_file,
+    "O:\\Preventive Medicine\\Keiki-DanRiggins\\CountyCare Opioid Analgesic Prescriber\\p_attr_core.csv",
+    format = "file"
+  ),
+  tar_target(
+    edges_raw_file,
+    "O:\\Preventive Medicine\\Keiki-DanRiggins\\CountyCare Opioid Analgesic Prescriber\\Providers_Edgelist.csv",
+    format = "file"
+  )
+)
+```
+
+```{targets raw_imports}
+list(
+  tar_target(
+    nodes_raw,
+    read_csv(nodes_raw_file) |> 
+      mutate(ID = as.character(ID))
+  ),
+  tar_target(
+    edges_raw,
+    read_csv(edges_raw_file) |> 
+      rename(from = SOURCE, to = TARGET)
+  )
+)
+```
+
+```{targets provider_graph, tar_simple = TRUE}
+tbl_graph(
+  nodes = nodes_raw,
+  edges = edges_raw,
+  directed = TRUE,
+  node_key = "ID"
+)
+```
+
+
+
+
+```{targets fit, tar_simple = TRUE}
+biglm(Ozone ~ Wind + Temp, data)
+```
+
+# Pipeline
+
+If you ran all the `{targets}` chunks in non-interactive mode, then your R scripts are set up to run the pipeline.
+
+```{r}
+tar_make()
+```
+
+# Output
+
+You can retrieve results from the `_targets/` data store using `tar_read()` or `tar_load()`.
+
+```{r, message = FALSE}
+library(biglm)
+tar_read(fit)
+```
+
+```{r}
+tar_read(hist)
+```
+
+The `targets` dependency graph helps your readers understand the steps of your pipeline at a high level.
+
+```{r}
+tar_visnetwork()
+```
+
+At this point, you can go back and run `{targets}` chunks in interactive mode without interfering with the code or data of the non-interactive pipeline.

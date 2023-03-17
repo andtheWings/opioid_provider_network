@@ -1,0 +1,22 @@
+---
+title: "Untitled"
+author: "Daniel P. Hall Riggins"
+date: "5/10/2022"
+output: html_document
+---
+
+```{r}
+library(ggraph)
+library(targets)
+library(tidygraph)
+library(tidyverse)
+```
+
+```{r}
+provider_nodes <- read_csv("O:\\Preventive Medicine\\Keiki-DanRiggins\\CountyCare Opioid Analgesic Prescriber\\p_attr_core.csv")
+
+provider_edges <- read_csv("O:\\Preventive Medicine\\Keiki-DanRiggins\\CountyCare Opioid Analgesic Prescriber\\Providers_Edgelist.csv")
+
+
+```
+
